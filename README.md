@@ -37,7 +37,7 @@ app/
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/crypto-analysis-api.git
+git clone https://github.com/Fezeh-Moradi/crypto-analysis-api.git
 cd crypto-analysis-api
 
 python -m venv venv

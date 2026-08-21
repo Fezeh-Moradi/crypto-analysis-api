@@ -1,7 +1,5 @@
 # Crypto Analysis API
 
-A lightweight and practical Cryptocurrency Analysis API built with FastAPI.
-
 This project provides real-time price data, technical indicators, trading signals, support/resistance levels, and position size calculation to help with manual trading decisions.
 
 ## Features

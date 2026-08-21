@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.services.market_data import MarketDataService
-from app.models.schemas import PriceResponse, AnalysisResponse, CompareResponse
+from app.models.schemas import PriceResponse, PositionSizeRequest, PositionSizeResponse, AnalysisResponse, CompareResponse
+from app.services.risk import RiskService
 
 router = APIRouter()
 service = MarketDataService()
@@ -42,3 +43,17 @@ async def compare_coins(
         raise HTTPException(status_code=400, detail="Maximum 5 symbols allowed")
     
     return await service.compare(symbol_list)
+
+
+
+risk_service = RiskService()
+
+
+@router.post("/position-size", response_model=PositionSizeResponse)
+async def calculate_position_size(data: PositionSizeRequest):
+    try:
+        return risk_service.calculate_position_size(data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")

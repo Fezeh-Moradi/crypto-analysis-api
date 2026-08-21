@@ -34,37 +34,92 @@ class TechnicalAnalyzer:
             macd_hist=round(float(macd_hist), 4) if not np.isnan(macd_hist) else None,
         )
 
-    def generate_signal(self, indicators: IndicatorValues, current_price: float) -> tuple[str, str]:
+
+    def find_support_resistance(self, window: int = 10) -> tuple[float | None, float | None]:
+        if len(self.df) < window * 2:
+            return None, None
+
+        closes = self.df["close"].values
+        recent = closes[-window*3:]
+
+        resistance = float(max(recent[-window:]))
+        support = float(min(recent[-window:]))
+
+        # Simple filter to avoid too close levels
+        if resistance - support < (resistance * 0.005):
+            return None, None
+
+        return round(support, 4), round(resistance, 4)
+
+    def generate_signal(self, indicators: IndicatorValues, current_price: float) -> tuple[str, str, int]:
         reasons = []
         score = 0
 
+        # RSI rules
         if indicators.rsi_14 is not None:
             if indicators.rsi_14 < 30:
                 score += 2
-                reasons.append("RSI in oversold area")
+                reasons.append("RSI oversold")
+            elif indicators.rsi_14 < 40:
+                score += 1
+                reasons.append("RSI near oversold")
             elif indicators.rsi_14 > 70:
                 score -= 2
-                reasons.append("RSI in overbought area")
+                reasons.append("RSI overbought")
+            elif indicators.rsi_14 > 60:
+                score -= 1
+                reasons.append("RSI near overbought")
 
+        # MACD rules
         if indicators.macd is not None and indicators.macd_signal is not None:
-            if indicators.macd > indicators.macd_signal:
+            if indicators.macd > indicators.macd_signal and indicators.macd_hist is not None and indicators.macd_hist > 0:
+                score += 2
+                reasons.append("MACD strong bullish")
+            elif indicators.macd > indicators.macd_signal:
                 score += 1
                 reasons.append("MACD bullish")
+            elif indicators.macd < indicators.macd_signal and indicators.macd_hist is not None and indicators.macd_hist < 0:
+                score -= 2
+                reasons.append("MACD strong bearish")
             else:
                 score -= 1
                 reasons.append("MACD bearish")
 
+        # Price vs SMA rules
         if indicators.sma_20 is not None:
-            if current_price > indicators.sma_20:
+            if current_price > indicators.sma_20 * 1.02:
+                score += 1
+                reasons.append("Price well above SMA20")
+            elif current_price > indicators.sma_20:
                 score += 1
                 reasons.append("Price above SMA20")
+            elif current_price < indicators.sma_20 * 0.98:
+                score -= 1
+                reasons.append("Price well below SMA20")
             else:
                 score -= 1
                 reasons.append("Price below SMA20")
 
-        if score >= 2:
-            return "BUY", " | ".join(reasons) if reasons else "Bullish conditions"
+        # EMA trend
+        if indicators.ema_12 is not None and indicators.ema_26 is not None:
+            if indicators.ema_12 > indicators.ema_26:
+                score += 1
+                reasons.append("EMA12 above EMA26")
+            else:
+                score -= 1
+                reasons.append("EMA12 below EMA26")
+
+        # Final decision
+        if score >= 4:
+            signal = "STRONG_BUY"
+        elif score >= 2:
+            signal = "BUY"
+        elif score <= -4:
+            signal = "STRONG_SELL"
         elif score <= -2:
-            return "SELL", " | ".join(reasons) if reasons else "Bearish conditions"
+            signal = "SELL"
         else:
-            return "HOLD", " | ".join(reasons) if reasons else "Neutral conditions"
+            signal = "HOLD"
+
+        reason_text = " | ".join(reasons) if reasons else "Neutral conditions"
+        return signal, reason_text, score

@@ -39,9 +39,7 @@ app/
 ```bash
 git clone https://github.com/YOUR-USERNAME/crypto-analysis-api.git
 cd crypto-analysis-api
-```
 
-```bash
 python -m venv venv
 ```
 
@@ -75,12 +73,12 @@ http://127.0.0.1:8000/docs
 
 ## Main Endpoints
 
-| Method | Endpoint                    | Description                          |
-|--------|-----------------------------|--------------------------------------|
-| GET    | `/api/v1/price/{symbol}`    | Get current price                    |
-| GET    | `/api/v1/analysis/{symbol}` | Full technical analysis + signal     |
-| GET    | `/api/v1/compare`           | Compare multiple coins               |
-| POST   | `/api/v1/position-size`     | Calculate position size              |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/price/{symbol}` | Get current price |
+| GET | `/api/v1/analysis/{symbol}` | Full technical analysis + signal |
+| GET | `/api/v1/compare` | Compare multiple coins |
+| POST | `/api/v1/position-size` | Calculate position size |
 
 ### Example: Position Size
 

@@ -25,7 +25,7 @@ This project provides real-time price data, technical indicators, trading signal
 
 ## Project Structure
 
-```
+```text
 app/
 ├── api/            # API routes
 ├── core/           # External clients (CoinGecko)
@@ -39,15 +39,25 @@ app/
 ```bash
 git clone https://github.com/YOUR-USERNAME/crypto-analysis-api.git
 cd crypto-analysis-api
+```
 
+```bash
 python -m venv venv
+```
 
-# Windows
+### Windows
+
+```bash
 venv\Scripts\activate
+```
 
-# macOS/Linux
+### macOS/Linux
+
+```bash
 source venv/bin/activate
+```
 
+```bash
 pip install -r requirements.txt
 ```
 
@@ -59,7 +69,9 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 Open the interactive docs:
 
+```text
 http://127.0.0.1:8000/docs
+```
 
 ## Main Endpoints
 
@@ -72,8 +84,11 @@ http://127.0.0.1:8000/docs
 
 ### Example: Position Size
 
-```json
+```http
 POST /api/v1/position-size
+```
+
+```json
 {
   "account_balance": 1000,
   "risk_percent": 1,

@@ -41,21 +41,13 @@ git clone https://github.com/YOUR-USERNAME/crypto-analysis-api.git
 cd crypto-analysis-api
 
 python -m venv venv
-```
 
-### Windows
-
-```bash
+# Windows
 venv\Scripts\activate
-```
 
-### macOS/Linux
-
-```bash
+# macOS/Linux
 source venv/bin/activate
-```
 
-```bash
 pip install -r requirements.txt
 ```
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel , Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -33,6 +33,7 @@ class AnalysisResponse(BaseModel):
     signal_reason: str
     support: Optional[float] = None
     resistance: Optional[float] = None
+    atr_14: Optional[float] = None
     volatility_30d: Optional[float] = None
     last_updated: datetime
 
@@ -55,6 +56,7 @@ class PositionSizeRequest(BaseModel):
     risk_percent: float
     entry_price: float
     stop_loss_price: float
+    atr_14: float = Field(..., gt=0, description="ATR 14-period")
 
 
 class PositionSizeResponse(BaseModel):
@@ -66,3 +68,25 @@ class PositionSizeResponse(BaseModel):
     stop_loss_percent: float
     position_size: float
     position_value: float
+    atr_based_stop_loss_percent: float
+
+
+class TrailingStopRequest(BaseModel):
+    entry_price: float
+    current_price: float
+    atr_14: float
+    side: str = Field(..., description="long or short")
+    multiplier: float = Field(1.5, ge=0.5, le=5.0, description="ATR multiplier (default 1.5)")
+
+
+class TrailingStopResponse(BaseModel):
+    entry_price: float
+    current_price: float
+    side: str
+    atr_14: float
+    multiplier: float
+    initial_stop_loss: float
+    trailing_stop_loss: float
+    distance_percent: float
+    is_profitable: bool
+    recommendation: str

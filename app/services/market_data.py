@@ -76,6 +76,7 @@ class MarketDataService:
         current_price = prices[-1]
         signal, reason, score = analyzer.generate_signal(indicators, current_price)
         support, resistance = analyzer.find_support_resistance()
+        atr = analyzer.calculate_atr()
         returns = pd.Series(prices).pct_change().dropna()
         volatility = float(returns.std() * (365 ** 0.5) * 100)
 
@@ -88,6 +89,7 @@ class MarketDataService:
             signal_reason=reason,
             support=support,
             resistance=resistance,
+            atr_14=atr,
             volatility_30d=round(volatility, 2),
             last_updated=datetime.now(timezone.utc),
         )

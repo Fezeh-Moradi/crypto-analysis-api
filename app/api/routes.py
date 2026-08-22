@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.services.market_data import MarketDataService
-from app.models.schemas import PriceResponse, PositionSizeRequest, PositionSizeResponse, AnalysisResponse, CompareResponse
+from app.models.schemas import PriceResponse, PositionSizeRequest, PositionSizeResponse, AnalysisResponse, CompareResponse, TrailingStopRequest, TrailingStopResponse
 from app.services.risk import RiskService
 
 router = APIRouter()
@@ -53,6 +53,17 @@ risk_service = RiskService()
 async def calculate_position_size(data: PositionSizeRequest):
     try:
         return risk_service.calculate_position_size(data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+@router.post("/trailing-stop", response_model=TrailingStopResponse)
+async def calculate_trailing_stop(data: TrailingStopRequest):
+    try:
+        return risk_service.calculate_trailing_stop(data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:

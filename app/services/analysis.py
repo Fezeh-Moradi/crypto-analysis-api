@@ -45,11 +45,28 @@ class TechnicalAnalyzer:
         resistance = float(max(recent[-window:]))
         support = float(min(recent[-window:]))
 
-        # Simple filter to avoid too close levels
         if resistance - support < (resistance * 0.005):
             return None, None
 
         return round(support, 4), round(resistance, 4)
+
+
+
+    def calculate_atr(self, window: int = 14) -> Optional[float]:
+        if len(self.df) < window + 1:
+            return None
+
+        high = self.df["high"].values if "high" in self.df.columns else self.df["close"] * 1.01
+        low = self.df["low"].values if "low" in self.df.columns else self.df["close"] * 0.99
+
+        tr = np.maximum.reduce([
+            high - low,
+            np.abs(high - self.df["close"].shift(1).values),
+            np.abs(low - self.df["close"].shift(1).values)
+        ])
+
+        atr = pd.Series(tr).rolling(window=window).mean().iloc[-1]
+        return round(float(atr), 4) if not np.isnan(atr) else None
 
     def generate_signal(self, indicators: IndicatorValues, current_price: float) -> tuple[str, str, int]:
         reasons = []

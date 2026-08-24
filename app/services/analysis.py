@@ -71,73 +71,84 @@ class TechnicalAnalyzer:
 
     def generate_signal(self, indicators: IndicatorValues, current_price: float) -> tuple[str, str, int]:
         reasons = []
-        score = 0
+        short_score = 0
+        medium_score = 0
 
-        # RSI rules
+        # ===== Short-term (RSI + MACD) =====
         if indicators.rsi_14 is not None:
             if indicators.rsi_14 < 30:
-                score += 2
+                short_score += 2
                 reasons.append("RSI oversold")
             elif indicators.rsi_14 < 40:
-                score += 1
+                short_score += 1
                 reasons.append("RSI near oversold")
             elif indicators.rsi_14 > 70:
-                score -= 2
+                short_score -= 2
                 reasons.append("RSI overbought")
             elif indicators.rsi_14 > 60:
-                score -= 1
+                short_score -= 1
                 reasons.append("RSI near overbought")
 
-        # MACD rules
         if indicators.macd is not None and indicators.macd_signal is not None:
             if indicators.macd > indicators.macd_signal and indicators.macd_hist is not None and indicators.macd_hist > 0:
-                score += 2
+                short_score += 2
                 reasons.append("MACD strong bullish")
             elif indicators.macd > indicators.macd_signal:
-                score += 1
+                short_score += 1
                 reasons.append("MACD bullish")
             elif indicators.macd < indicators.macd_signal and indicators.macd_hist is not None and indicators.macd_hist < 0:
-                score -= 2
+                short_score -= 2
                 reasons.append("MACD strong bearish")
             else:
-                score -= 1
+                short_score -= 1
                 reasons.append("MACD bearish")
 
-        # Price vs SMA rules
+        # ===== Medium-term (SMA + EMA) =====
         if indicators.sma_20 is not None:
-            if current_price > indicators.sma_20 * 1.02:
-                score += 1
-                reasons.append("Price well above SMA20")
-            elif current_price > indicators.sma_20:
-                score += 1
+            if current_price > indicators.sma_20:
+                medium_score += 1
                 reasons.append("Price above SMA20")
-            elif current_price < indicators.sma_20 * 0.98:
-                score -= 1
-                reasons.append("Price well below SMA20")
             else:
-                score -= 1
+                medium_score -= 1
                 reasons.append("Price below SMA20")
 
-        # EMA trend
+        if indicators.sma_50 is not None:
+            if current_price > indicators.sma_50:
+                medium_score += 1
+                reasons.append("Price above SMA50")
+            else:
+                medium_score -= 1
+                reasons.append("Price below SMA50")
+
         if indicators.ema_12 is not None and indicators.ema_26 is not None:
             if indicators.ema_12 > indicators.ema_26:
-                score += 1
+                medium_score += 1
                 reasons.append("EMA12 above EMA26")
             else:
-                score -= 1
+                medium_score -= 1
                 reasons.append("EMA12 below EMA26")
 
-        # Final decision
-        if score >= 4:
+        # ===== Final decision with Multi-Timeframe confirmation =====
+        total_score = short_score + medium_score
+
+        # Both sides bullish
+        if short_score >= 2 and medium_score >= 1:
             signal = "STRONG_BUY"
-        elif score >= 2:
-            signal = "BUY"
-        elif score <= -4:
+        # Both sides bearish
+        elif short_score <= -2 and medium_score <= -1:
             signal = "STRONG_SELL"
-        elif score <= -2:
+        # Only short-term strong
+        elif short_score >= 2:
+            signal = "BUY"
+        elif short_score <= -2:
+            signal = "SELL"
+        # Weak / mixed
+        elif total_score >= 2:
+            signal = "BUY"
+        elif total_score <= -2:
             signal = "SELL"
         else:
             signal = "HOLD"
 
         reason_text = " | ".join(reasons) if reasons else "Neutral conditions"
-        return signal, reason_text, score
+        return signal, reason_text, total_score

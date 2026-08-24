@@ -3,6 +3,7 @@ import numpy as np
 from ta.momentum import RSIIndicator
 from ta.trend import SMAIndicator, EMAIndicator, MACD
 from app.models.schemas import IndicatorValues
+from typing import Optional
 
 
 class TechnicalAnalyzer:

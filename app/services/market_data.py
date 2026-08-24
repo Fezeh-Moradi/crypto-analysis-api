@@ -115,3 +115,66 @@ class MarketDataService:
                 continue
 
         return CompareResponse(items=items, compared_at=datetime.now(timezone.utc))
+
+
+
+    async def get_trade_idea(self, symbol: str, account_balance: float = 1000, risk_percent: float = 1.0) -> dict:
+        analysis = await self.get_analysis(symbol)
+
+        current_price = analysis.current_price
+        atr = analysis.atr_14 or 0
+        support = analysis.support
+        resistance = analysis.resistance
+        signal = analysis.signal
+        score = analysis.signal_score
+
+        suggested_stop_loss = None
+        suggested_take_profit = None
+        risk_reward_ratio = None
+        position_size = None
+        position_value = None
+        recommendation = "No clear trade idea. Wait for better setup."
+
+        if signal in ["BUY", "STRONG_BUY"] and atr > 0:
+            suggested_stop_loss = round(current_price - (atr * 1.5), 4)
+            suggested_take_profit = round(current_price + (atr * 3), 4)
+            risk = current_price - suggested_stop_loss
+            reward = suggested_take_profit - current_price
+            risk_reward_ratio = round(reward / risk, 2) if risk > 0 else None
+
+            risk_amount = account_balance * (risk_percent / 100)
+            position_size = round(risk_amount / risk, 6) if risk > 0 else None
+            position_value = round(position_size * current_price, 2) if position_size else None
+
+            recommendation = "Consider LONG. Risk/Reward looks acceptable." if risk_reward_ratio and risk_reward_ratio >= 1.5 else "LONG signal exists but Risk/Reward is weak."
+
+        elif signal in ["SELL", "STRONG_SELL"] and atr > 0:
+            suggested_stop_loss = round(current_price + (atr * 1.5), 4)
+            suggested_take_profit = round(current_price - (atr * 3), 4)
+            risk = suggested_stop_loss - current_price
+            reward = current_price - suggested_take_profit
+            risk_reward_ratio = round(reward / risk, 2) if risk > 0 else None
+
+            risk_amount = account_balance * (risk_percent / 100)
+            position_size = round(risk_amount / risk, 6) if risk > 0 else None
+            position_value = round(position_size * current_price, 2) if position_size else None
+
+            recommendation = "Consider SHORT. Risk/Reward looks acceptable." if risk_reward_ratio and risk_reward_ratio >= 1.5 else "SHORT signal exists but Risk/Reward is weak."
+
+        return {
+            "symbol": analysis.symbol,
+            "current_price": current_price,
+            "signal": signal,
+            "signal_score": score,
+            "signal_reason": analysis.signal_reason,
+            "support": support,
+            "resistance": resistance,
+            "atr_14": atr,
+            "suggested_stop_loss": suggested_stop_loss,
+            "suggested_take_profit": suggested_take_profit,
+            "risk_reward_ratio": risk_reward_ratio,
+            "position_size": position_size,
+            "position_value": position_value,
+            "recommendation": recommendation,
+            "last_updated": analysis.last_updated,
+        }

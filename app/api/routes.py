@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.services.market_data import MarketDataService
-from app.models.schemas import PriceResponse, PositionSizeRequest, PositionSizeResponse, AnalysisResponse, CompareResponse, TrailingStopRequest, TrailingStopResponse
+from app.models.schemas import PriceResponse, PositionSizeRequest, PositionSizeResponse, AnalysisResponse, CompareResponse, TrailingStopRequest, TrailingStopResponse, TradeIdeaResponse
 from app.services.risk import RiskService
 
 router = APIRouter()
@@ -66,5 +66,21 @@ async def calculate_trailing_stop(data: TrailingStopRequest):
         return risk_service.calculate_trailing_stop(data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+@router.get("/trade-idea/{symbol}", response_model=TradeIdeaResponse)
+async def get_trade_idea(
+    symbol: str,
+    account_balance: float = Query(1000, gt=0),
+    risk_percent: float = Query(1.0, gt=0, le=5)
+):
+    try:
+        data = await service.get_trade_idea(symbol, account_balance, risk_percent)
+        return data
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception:
         raise HTTPException(status_code=500, detail="Internal server error")

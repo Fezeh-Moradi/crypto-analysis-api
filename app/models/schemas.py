@@ -90,3 +90,28 @@ class TrailingStopResponse(BaseModel):
     distance_percent: float
     is_profitable: bool
     recommendation: str
+
+
+
+class TradeIdeaRequest(BaseModel):
+    symbol: str
+    account_balance: float = 1000
+    risk_percent: float = 1.0
+
+
+class TradeIdeaResponse(BaseModel):
+    symbol: str
+    current_price: float
+    signal: str
+    signal_score: int
+    signal_reason: str
+    support: Optional[float] = None
+    resistance: Optional[float] = None
+    atr_14: Optional[float] = None
+    suggested_stop_loss: Optional[float] = None
+    suggested_take_profit: Optional[float] = None
+    risk_reward_ratio: Optional[float] = None
+    position_size: Optional[float] = None
+    position_value: Optional[float] = None
+    recommendation: str
+    last_updated: datetime
